@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Search App</title>
+    <style>
+        *{
+            background-color: gray;
+
+        }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color:gray;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .search-container input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 300px;
+            background-color: beige;
+        }
+
+        .movies-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px; 
+        }
+
+        .movie-card {
+            width: 200px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease-in-out;
+            cursor: pointer;
+        }
+
+        .movie-card:nth-child(even) {
+            transform: translateX(20px);
+        }
+
+        .movie-card:nth-child(odd) {
+            transform: translateX(-20px);
+        }
+
+        .movie-card:hover {
+            transform: scale(1.05) translateY(-10px);
+            z-index: 2;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .movie-card img {
+            width: 100%;
+            height: auto;
+        }
+
+        .movie-info {
+            padding: 10px;
+            text-align: center;
+        }
+
+        .movie-info h2 {
+            font-size: 1.2em;
+            margin: 0;
+        }
+
+        .movie-info p {
+            margin: 5px 0 0;
+        }
+
+        @media (max-width: 768px) {
+            .movie-card {
+                width: 100%;
+                transform: none;
+                margin: 0;
+            }
+
+            .movie-card:nth-child(even),
+            .movie-card:nth-child(odd) {
+                transform: none;
+            }
+
+            .search-container input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Movie Search App</h1>
+    
+    <div class="search-container">
+        <input
+            id="ratingInput"
+            type="text"
+            placeholder="Enter minimum rating (0-5)"
+        />
+    </div>
+
+    <div id="moviesContainer" class="movies-container"></div> 
+</div>
+
+<script>
+    const url = "https://feecq.github.io/api/movies.json";
+    let moviesData = [];
+
+    async function fetchData() {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error("Network response was not ok.");
+            }
+            const data = await response.json();
+            moviesData = data;
+            renderMovies(data);
+        } catch (error) {
+            console.error("There was a problem with the fetch operation:", error);
+        }
+    }
+
+    function renderMovies(data) {
+        const container = document.getElementById("moviesContainer");
+        container.innerHTML = ""; 
+
+        data.forEach(movie => {
+            let ratingOutOfFive = (movie.rating / 10) * 5;
+
+            const movieCard = document.createElement("div");
+            movieCard.classList.add("movie-card");
+
+            const movieLink = document.createElement("a");
+            movieLink.href = movie.imdb_url;
+            movieLink.target = "_blank"; 
+
+            movieCard.innerHTML = `
+                <img src="${movie.image}" alt="${movie.movie}" />
+                <div class="movie-info">
+                    <h2>${movie.movie}</h2>
+                    <p>Rating: ${ratingOutOfFive.toFixed(1)} / 5</p>
+                </div>
+            `;
+
+            movieLink.appendChild(movieCard);
+            container.appendChild(movieLink);
+        });
+    }
+
+    function filterMovies() {
+        const inputRating = parseFloat(document.getElementById('ratingInput').value);
+
+        let filteredMovies = moviesData;
+
+        if (!isNaN(inputRating) && inputRating >= 0 && inputRating <= 5) {
+            filteredMovies = filteredMovies.filter(movie => (movie.rating / 10) * 5 >= inputRating);
+        }
+
+        renderMovies(filteredMovies); 
+    }
+
+    document.getElementById('ratingInput').addEventListener('input', filterMovies);
+
+    fetchData();
+</script>
+
+</body>
+</html>
